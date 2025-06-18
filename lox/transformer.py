@@ -77,6 +77,10 @@ class LoxTransformer(Transformer):
     # Comandos
     def print_cmd(self, expr):
         return Print(expr)
+    
+
+    def block(self, *stmts):
+        return Block(list(stmts))
 
     def VAR(self, token):
         name = str(token)

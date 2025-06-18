@@ -4,11 +4,15 @@ program    : stmt*
 
 ?stmt      : expr ";"
            | print_cmd
+           | block
            // | if_cmd
            // | for_cmd
            // | ...
 
 print_cmd  : "print" expr ";"
+
+block      : "{" stmt* "}"
+
 
 // EXPRESSÕES
 

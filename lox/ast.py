@@ -283,11 +283,11 @@ class While(Stmt):
 
 @dataclass
 class Block(Node):
-    """
-    Representa bloco de comandos.
+    stmts: list[Stmt]
 
-    Ex.: { var x = 42; print x;  }
-    """
+    def eval(self, ctx: Ctx):
+        for stmt in self.stmts:
+            stmt.eval(ctx)
 
 
 @dataclass
