@@ -3,14 +3,17 @@
 program    : declaration*
 
 ?declaration: var_decl
+            | function_decl
             | stmt
 
-?stmt      : expr ";"
+?stmt      : expr_stmt
            | print_cmd
            | block
            | if_cmd
            | while_cmd
-           // | for_cmd
+           | return_cmd
+           | for_cmd
+           
            // | ...
 
 print_cmd  : "print" expr ";"
@@ -21,7 +24,21 @@ if_cmd     : "if" "(" expr ")" stmt ["else" stmt]
 
 while_cmd  : "while" "(" expr ")" stmt
 
+for_cmd    : "for" "(" for_init for_cond ";" for_incr ")" stmt
+for_init   : var_decl
+           | expr_stmt
+           | ";"           -> empty_init
+for_cond   : expr?          -> maybe_cond
+for_incr   : expr?          -> maybe_incr
+
+expr_stmt  : expr ";"
+
+
 var_decl   : "var" VAR ("=" expr)? ";"
+function_decl: "fun" VAR "(" param_list? ")" block    -> function
+param_list  : VAR ("," VAR)*
+return_cmd  : "return" expr? ";"    -> return
+
 
 // EXPRESSÕES
 

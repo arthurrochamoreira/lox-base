@@ -127,3 +127,39 @@ class LoxTransformer(Transformer):
         if isinstance(target, Getattr):
             return Setattr(obj=target.obj, attr=target.attr, value=value)
         raise TypeError("atribuição inválida")
+    
+
+    # Statements auxiliares
+    def expr_stmt(self, expr: Expr):
+        return expr
+
+    def empty_init(self):
+        return Literal(None)
+
+    def maybe_cond(self, cond: Expr | None = None):
+        if cond is None:
+            return Literal(True)
+        return cond
+
+    def maybe_incr(self, incr: Expr | None = None):
+        if incr is None:
+            return Literal(None)
+        return incr
+
+    def for_init(self, stmt):
+        return stmt
+
+    def for_cmd(self, init: Stmt, cond: Expr, incr: Expr, body: Stmt):
+        loop_body = Block([body, incr])
+        while_stmt = While(cond=cond, body=loop_body)
+        return Block([init, while_stmt])
+    
+    def function(self, name: Var, params: list[str] | None, body: Block):
+        param_names = params or []
+        return Function(name=name.name, params=param_names, body=body)
+
+    def param_list(self, *names: Var):
+        return [n.name for n in names]
+
+    def return_cmd(self, value: Expr | None = None):
+        return Return(value)

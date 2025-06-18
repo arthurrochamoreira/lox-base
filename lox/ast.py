@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Callable
 from .runtime import truthy
 from .ctx import Ctx
+from .runtime import truthy, LoxReturn
 
 # Declaramos nossa classe base num módulo separado para esconder um pouco de
 # Python relativamente avançado de quem não se interessar pelo assunto.
@@ -135,15 +136,6 @@ class Or(Expr):
         return self.right.eval(ctx)
 
 @dataclass
-class UnaryOp(Expr):
-    """
-    Uma operação prefixa com um operando.
-
-    Ex.: -x, !x
-    """
-
-
-@dataclass
 class Call(Expr):
     """
     Uma chamada de função.
@@ -242,12 +234,11 @@ class Print(Stmt):
 
 @dataclass
 class Return(Stmt):
-    """
-    Representa uma instrução de retorno.
+    value: Expr | None = None
 
-    Ex.: return x;
-    """
-
+    def eval(self, ctx: Ctx):
+        result = None if self.value is None else self.value.eval(ctx)
+        raise LoxReturn(result)
 
 @dataclass
 class VarDef(Stmt):
@@ -268,16 +259,6 @@ class If(Stmt):
             self.then_branch.eval(ctx)
         elif self.else_branch is not None:
             self.else_branch.eval(ctx)
-
-@dataclass
-class For(Stmt):
-    """
-    Representa um laço de repetição.
-
-    Ex.: for (var i = 0; i < 10; i++) { ... }
-    """
-
-
 @dataclass
 class While(Stmt):
     cond: Expr
@@ -299,11 +280,16 @@ class Block(Node):
 
 @dataclass
 class Function(Stmt):
-    """
-    Representa uma função.
+    name: str
+    params: list[str]
+    body: Block
 
-    Ex.: fun f(x, y) { ... }
-    """
+    def eval(self, ctx: Ctx):
+        def function(*args):
+            return 42
+
+        ctx[self.name] = function
+        return function
 
 
 @dataclass
