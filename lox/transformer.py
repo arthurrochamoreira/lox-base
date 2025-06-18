@@ -13,6 +13,8 @@ from lark import Transformer, v_args
 from . import runtime as op
 from .ast import *
 
+from .ast import UnaryOp
+
 
 def op_handler(op: Callable):
     """
@@ -48,9 +50,19 @@ class LoxTransformer(Transformer):
     ne = op_handler(op.ne)
 
     # Outras expressões
-    def call(self, name: Var, params: list):
-        return Call(name.name, params)
-        
+    def call(self, callee: Expr, *suffixes):
+        for kind, value in suffixes:
+            if kind == "args":
+                callee = Call(callee, value)
+            elif kind == "attr":
+                callee = Getattr(callee, value)
+        return callee
+
+    def args(self, params: list):
+        return ("args", params)
+
+    def attr(self, name: Var):
+        return ("attr", name.name)
     def params(self, *args):
         params = list(args)
         return params
@@ -76,3 +88,12 @@ class LoxTransformer(Transformer):
 
     def BOOL(self, token):
         return Literal(token == "true")
+    
+    def getattr(self, obj, name):
+        return Getattr(obj=obj, name=name.name)
+    
+    def not_(self, value):
+        return UnaryOp(op=lambda x: not x, operand=value)
+
+    def neg(self, value):
+        return UnaryOp(op=lambda x: -x, operand=value)

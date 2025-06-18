@@ -31,15 +31,20 @@ print_cmd  : "print" expr ";"
            | term "/" atom   -> div 
            | atom
 
-?atom      : NUMBER 
+?atom      : call
+
+call       : primary call_suffix*
+
+call_suffix: "(" params ")"   -> args
+           | "." VAR          -> attr
+
+?primary   : NUMBER
            | BOOL
            | VAR
            | STRING
            | NIL
            | "(" cmp ")"
-           | call
 
-call       : VAR "(" params ")"
 params     : [ expr ("," expr )* ]
 
 BOOL.2     : "true" | "false"

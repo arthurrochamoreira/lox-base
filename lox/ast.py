@@ -141,18 +141,16 @@ class Call(Expr):
 
     Ex.: fat(42)
     """
-    name: str
+
+    callee: Expr
     params: list[Expr]
-    
+
     def eval(self, ctx: Ctx):
-        func = ctx[self.name]
-        params = []
-        for param in self.params:
-            params.append(param.eval(ctx))
-        
+        func = self.callee.eval(ctx)
+        args = [p.eval(ctx) for p in self.params]
         if callable(func):
-            return func(*params)
-        raise TypeError(f"{self.name} não é uma função!")
+            return func(*args)
+        raise TypeError(f"{func!r} não é chamável")
 
 
 @dataclass
@@ -190,6 +188,12 @@ class Getattr(Expr):
     Ex.: x.y
     """
 
+    obj: Expr
+    attr: str
+
+    def eval(self, ctx: Ctx):
+        value = self.obj.eval(ctx)
+        return getattr(value, self.attr)
 
 @dataclass
 class Setattr(Expr):
@@ -287,3 +291,11 @@ class Class(Stmt):
 
     Ex.: class B < A { ... }
     """
+
+@dataclass
+class UnaryOp(Expr):
+    op: Callable[[Value], Value]
+    operand: Expr
+
+    def eval(self, ctx: Ctx):
+        return self.op(self.operand.eval(ctx))
