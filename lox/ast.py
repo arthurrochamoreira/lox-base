@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
-
+from .runtime import truthy
 from .ctx import Ctx
 
 # Declaramos nossa classe base num módulo separado para esconder um pouco de
@@ -110,20 +110,29 @@ class Literal(Expr):
 
 @dataclass
 class And(Expr):
-    """
-    Uma operação infixa com dois operandos.
+    """Operador lógico 'and' com curto-circuito."""
 
-    Ex.: x and y
-    """
+    left: Expr
+    right: Expr
 
+    def eval(self, ctx: Ctx):
+        left_value = self.left.eval(ctx)
+        if not truthy(left_value):
+            return left_value
+        return self.right.eval(ctx)
 
 @dataclass
 class Or(Expr):
-    """
-    Uma operação infixa com dois operandos.
-    Ex.: x or y
-    """
+    """Operador lógico 'or' com curto-circuito."""
 
+    left: Expr
+    right: Expr
+
+    def eval(self, ctx: Ctx):
+        left_value = self.left.eval(ctx)
+        if truthy(left_value):
+            return left_value
+        return self.right.eval(ctx)
 
 @dataclass
 class UnaryOp(Expr):

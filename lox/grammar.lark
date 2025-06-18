@@ -11,7 +11,13 @@ program    : stmt*
 print_cmd  : "print" expr ";"
 
 // EXPRESSÕES
-?expr      : test
+?expr      : or_
+
+?or_       : and_
+           | or_ "or" and_   -> or_
+
+?and_      : test
+           | and_ "and" test -> and_
 
 ?test      : test "==" cmp  -> eq
            | test "!=" cmp  -> ne
@@ -47,7 +53,7 @@ call_suffix: "(" params ")"   -> args
            | VAR
            | STRING
            | NIL
-           | "(" cmp ")"
+           | "(" expr ")"
 
 params     : [ expr ("," expr )* ]
 

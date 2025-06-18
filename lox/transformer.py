@@ -49,6 +49,13 @@ class LoxTransformer(Transformer):
     eq = op_handler(op.eq)
     ne = op_handler(op.ne)
 
+        # Operadores lógicos
+    def or_(self, left: Expr, right: Expr):
+        return Or(left=left, right=right)
+
+    def and_(self, left: Expr, right: Expr):
+        return And(left=left, right=right)
+
     # Outras expressões
     def call(self, callee: Expr, *suffixes):
         for kind, value in suffixes:
