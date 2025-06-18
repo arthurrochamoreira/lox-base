@@ -212,11 +212,15 @@ class Getattr(Expr):
 
 @dataclass
 class Setattr(Expr):
-    """
-    Atribuição de atributo de um objeto.
+    obj: Expr
+    attr: str
+    value: Expr
 
-    Ex.: x.y = 42
-    """
+    def eval(self, ctx: Ctx):
+        obj_value = self.obj.eval(ctx)
+        result = self.value.eval(ctx)
+        setattr(obj_value, self.attr, result)
+        return result
 
 
 #

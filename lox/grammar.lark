@@ -27,7 +27,7 @@ var_decl   : "var" VAR ("=" expr)? ";"
 
 ?expr      : assignment
 
-?assignment: VAR "=" assignment   -> assign
+?assignment: call "=" assignment   -> assign_expr
            | or_
 
 ?or_       : and_

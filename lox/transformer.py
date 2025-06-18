@@ -121,5 +121,9 @@ class LoxTransformer(Transformer):
     def neg(self, value):
         return UnaryOp(op=lambda x: -x, operand=value)
     
-    def assign(self, name: Var, value: Expr):
-        return Assign(name=name.name, value=value)
+    def assign_expr(self, target: Expr, value: Expr):
+        if isinstance(target, Var):
+            return Assign(name=target.name, value=value)
+        if isinstance(target, Getattr):
+            return Setattr(obj=target.obj, attr=target.attr, value=value)
+        raise TypeError("atribuição inválida")
