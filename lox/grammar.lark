@@ -9,6 +9,7 @@ program    : declaration*
            | print_cmd
            | block
            | if_cmd
+           | while_cmd
            // | for_cmd
            // | ...
 
@@ -17,6 +18,8 @@ print_cmd  : "print" expr ";"
 block      : "{" declaration* "}"
 
 if_cmd     : "if" "(" expr ")" stmt ["else" stmt]
+
+while_cmd  : "while" "(" expr ")" stmt
 
 var_decl   : "var" VAR ("=" expr)? ";"
 

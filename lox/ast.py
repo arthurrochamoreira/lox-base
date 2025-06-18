@@ -276,11 +276,12 @@ class For(Stmt):
 
 @dataclass
 class While(Stmt):
-    """
-    Representa um laço de repetição.
+    cond: Expr
+    body: Stmt
 
-    Ex.: while (x > 0) { ... }
-    """
+    def eval(self, ctx: Ctx):
+        while truthy(self.cond.eval(ctx)):
+            self.body.eval(ctx)
 
 
 @dataclass

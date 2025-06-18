@@ -84,6 +84,9 @@ class LoxTransformer(Transformer):
     
     def if_cmd(self, cond: Expr, then_branch: Stmt, else_branch: Stmt | None = None):
         return If(cond=cond, then_branch=then_branch, else_branch=else_branch)
+    
+    def while_cmd(self, cond: Expr, body: Stmt):
+        return While(cond=cond, body=body)
 
     def var_decl(self, name: Var, value: Expr | None = None):
         if value is None:
