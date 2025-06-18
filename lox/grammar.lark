@@ -37,7 +37,7 @@ expr_stmt  : expr ";"
 var_decl   : "var" VAR ("=" expr)? ";"
 function_decl: "fun" VAR "(" param_list? ")" block    -> function
 param_list  : VAR ("," VAR)*
-return_cmd  : "return" expr? ";"    -> return
+return_cmd  : "return" expr? ";"    -> return_cmd
 
 
 // EXPRESSÕES

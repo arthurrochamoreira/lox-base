@@ -289,13 +289,15 @@ class Function(Stmt):
     body: Block
 
     def eval(self, ctx: Ctx):
+
+
         def function(*args):
             return 42
 
-        ctx[self.name] = function
+        # Function declarations introduce a new name in the current scope, so
+        # we use ``var_def`` instead of assigning directly.
+        ctx.var_def(self.name, function)
         return function
-
-
 @dataclass
 class Class(Stmt):
     """

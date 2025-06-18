@@ -154,10 +154,17 @@ class LoxTransformer(Transformer):
         while_stmt = While(cond=cond, body=loop_body)
         return Block([init, while_stmt])
     
-    def function(self, name: Var, params: list[str] | None, body: Block):
+    def function(self, name: Var, params: list[str] | None = None, body: Block | None = None):
+
+        if body is None:
+            # Called without an explicit parameter list: ``params`` actually
+            # refers to the body.
+            body = params  # type: ignore[assignment]
+            params = None
+
         param_names = params or []
         return Function(name=name.name, params=param_names, body=body)
-
+    
     def param_list(self, *names: Var):
         return [n.name for n in names]
 
