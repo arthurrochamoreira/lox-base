@@ -46,15 +46,14 @@ class LoxFunction:
 
     def __call__(self, *args):
         env = dict(zip(self.args, args, strict=True))
-        env = self.ctx.push(env)
-
+        self.ctx.push(env)
         try:
             for stmt in self.body:
-                stmt.eval(env)
+                stmt.eval(self.ctx)
         except LoxReturn as e:
             return e.value
-
-
+        finally:
+            self.ctx.pop()
 class LoxReturn(Exception):
     """
     Exceção para retornar de uma função Lox.

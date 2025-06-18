@@ -123,12 +123,6 @@ class Ctx:
             raise RuntimeError("Cannot pop the global scope.")
         return self.scope, self.parent
 
-    def push(self, env: ScopeDict) -> "Ctx":
-        """
-        Empilha um novo escopo no contexto atual.
-        """
-        return Ctx(env, self)
-
     def is_global(self) -> bool:
         """
         Verifica se o contexto atual é o escopo global.

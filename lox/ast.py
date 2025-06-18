@@ -184,7 +184,7 @@ class Assign(Expr):
 
     def eval(self, ctx: Ctx):
         result = self.value.eval(ctx)
-        ctx[self.name] = result
+        ctx.assign(self.name, result)
         return result
 
 @dataclass
@@ -274,8 +274,12 @@ class Block(Node):
     stmts: list[Stmt]
 
     def eval(self, ctx: Ctx):
-        for stmt in self.stmts:
-            stmt.eval(ctx)
+        ctx.push({})
+        try:
+            for stmt in self.stmts:
+                stmt.eval(ctx)
+        finally:
+            ctx.pop()
 
 
 @dataclass
