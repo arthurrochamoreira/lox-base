@@ -27,9 +27,13 @@ print_cmd  : "print" expr ";"
            | factor "-" term  -> sub
            | term
 
-?term      : term "*" atom   -> mul
-           | term "/" atom   -> div 
-           | atom
+?term      : term "*" unary   -> mul
+          | term "/" unary   -> div
+          | unary
+
+?unary     : "!" unary        -> not_
+          | "-" unary        -> neg
+          | atom
 
 ?atom      : call
 
