@@ -1,18 +1,24 @@
 ?start     : program
 
-program    : stmt*
+program    : declaration*
+
+?declaration: var_decl
+            | stmt
 
 ?stmt      : expr ";"
            | print_cmd
            | block
-           // | if_cmd
+           | if_cmd
            // | for_cmd
            // | ...
 
 print_cmd  : "print" expr ";"
 
-block      : "{" stmt* "}"
+block      : "{" declaration* "}"
 
+if_cmd     : "if" "(" expr ")" stmt ["else" stmt]
+
+var_decl   : "var" VAR ("=" expr)? ";"
 
 // EXPRESSÕES
 

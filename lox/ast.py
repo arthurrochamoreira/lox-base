@@ -247,21 +247,23 @@ class Return(Stmt):
 
 @dataclass
 class VarDef(Stmt):
-    """
-    Representa uma declaração de variável.
+    name: str
+    value: Expr
 
-    Ex.: var x = 42;
-    """
-
+    def eval(self, ctx: Ctx):
+        ctx.var_def(self.name, self.value.eval(ctx))
 
 @dataclass
 class If(Stmt):
-    """
-    Representa uma instrução condicional.
+    cond: Expr
+    then_branch: Stmt
+    else_branch: Stmt | None = None
 
-    Ex.: if (x > 0) { ... } else { ... }
-    """
-
+    def eval(self, ctx: Ctx):
+        if truthy(self.cond.eval(ctx)):
+            self.then_branch.eval(ctx)
+        elif self.else_branch is not None:
+            self.else_branch.eval(ctx)
 
 @dataclass
 class For(Stmt):

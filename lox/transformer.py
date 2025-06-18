@@ -81,6 +81,15 @@ class LoxTransformer(Transformer):
 
     def block(self, *stmts):
         return Block(list(stmts))
+    
+    def if_cmd(self, cond: Expr, then_branch: Stmt, else_branch: Stmt | None = None):
+        return If(cond=cond, then_branch=then_branch, else_branch=else_branch)
+
+    def var_decl(self, name: Var, value: Expr | None = None):
+        if value is None:
+            value = Literal(None)
+        return VarDef(name=name.name, value=value)
+
 
     def VAR(self, token):
         name = str(token)
