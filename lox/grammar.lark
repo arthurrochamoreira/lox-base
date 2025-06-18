@@ -11,7 +11,11 @@ program    : stmt*
 print_cmd  : "print" expr ";"
 
 // EXPRESSÕES
-?expr      : or_
+
+?expr      : assignment
+
+?assignment: VAR "=" assignment   -> assign
+           | or_
 
 ?or_       : and_
            | or_ "or" and_   -> or_

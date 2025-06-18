@@ -104,3 +104,6 @@ class LoxTransformer(Transformer):
 
     def neg(self, value):
         return UnaryOp(op=lambda x: -x, operand=value)
+    
+    def assign(self, name: Var, value: Expr):
+        return Assign(name=name.name, value=value)
