@@ -125,7 +125,7 @@ class Ctx:
             lines.append(pretty_scope(scope, i))
         return "\n".join(reversed(lines))
 
-    def pop(self) -> tuple[ScopeDict, "Ctx"]:
+    def pop(self) -> ScopeDict:
         """
         Remove o escopo mais interno e retorna o contexto atualizado.
         """
