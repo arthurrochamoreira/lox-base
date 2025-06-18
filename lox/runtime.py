@@ -35,17 +35,15 @@ class LoxInstance:
 
 @dataclass
 class LoxFunction:
-    """
-    Classe base para todas as funções Lox.
-    """
+    """Representa uma função do Lox."""
 
     name: str
-    args: list[str]
+    params: list[str]
     body: list["Stmt"]
     ctx: Ctx
 
-    def __call__(self, *args):
-        env = dict(zip(self.args, args, strict=True))
+    def call(self, args: list["Value"]):
+        env = dict(zip(self.params, args, strict=True))
         self.ctx.push(env)
         try:
             for stmt in self.body:
@@ -54,6 +52,9 @@ class LoxFunction:
             return e.value
         finally:
             self.ctx.pop()
+
+    def __call__(self, *args):
+        return self.call(list(args))
 class LoxReturn(Exception):
     """
     Exceção para retornar de uma função Lox.

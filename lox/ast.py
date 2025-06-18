@@ -1,9 +1,8 @@
 from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
-from .runtime import truthy
 from .ctx import Ctx
-from .runtime import truthy, LoxReturn
+from .runtime import LoxFunction, LoxReturn, truthy
 
 # Declaramos nossa classe base num módulo separado para esconder um pouco de
 # Python relativamente avançado de quem não se interessar pelo assunto.
@@ -289,15 +288,14 @@ class Function(Stmt):
     body: Block
 
     def eval(self, ctx: Ctx):
-
-
-        def function(*args):
-            return 42
-
-        # Function declarations introduce a new name in the current scope, so
-        # we use ``var_def`` instead of assigning directly.
-        ctx.var_def(self.name, function)
-        return function
+        func = LoxFunction(
+            name=self.name,
+            params=self.params,
+            body=self.body.stmts,
+            ctx=ctx,
+        )
+        ctx.var_def(self.name, func)
+        return func
 @dataclass
 class Class(Stmt):
     """
