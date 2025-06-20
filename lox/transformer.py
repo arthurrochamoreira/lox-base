@@ -179,6 +179,12 @@ class LoxTransformer(Transformer):
 
         param_names = params or []
         return Function(name=name.name, params=param_names, body=body)
+    
+    def NIL(self, _):
+        return Literal(None)
+
+    def this(self, _):
+        return This()
 
     def class_decl(self, name: Var, *rest):
         base: str | None = None

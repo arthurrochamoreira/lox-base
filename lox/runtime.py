@@ -66,7 +66,8 @@ class LoxInstance:
     def __getattr__(self, attr: str):
         """Procura por métodos definidos na classe."""
         try:
-            return self.__cls.get_method(attr)
+            method = self.__cls.get_method(attr)
+            return method.bind(self)
         except LoxError:
             raise AttributeError(attr)
 
@@ -78,6 +79,14 @@ class LoxFunction:
     params: list[str]
     body: list["Stmt"]
     ctx: Ctx
+
+    def bind(self, obj: "Value") -> "LoxFunction":
+        return LoxFunction(
+            name=self.name,
+            params=self.params,
+            body=self.body,
+            ctx=self.ctx.push({"this": obj}),
+        )
 
     def call(self, args: list["Value"]):
         env = dict(zip(self.params, args, strict=True))
@@ -94,7 +103,7 @@ class LoxFunction:
         return self.call(list(args))
     
     def __str__(self) -> str:
-        return f"<fn {self.name}>"
+        return f"<fn {self.name}>" 
 class LoxReturn(Exception):
     """
     Exceção para retornar de uma função Lox.

@@ -171,6 +171,13 @@ class This(Expr):
     Ex.: this
     """
 
+    name: str = "this"
+
+    def eval(self, ctx: Ctx):
+        try:
+            return ctx[self.name]
+        except KeyError:
+            raise NameError("variável this não existe!")
 
 @dataclass
 class Super(Expr):
@@ -180,6 +187,13 @@ class Super(Expr):
     Ex.: super.x
     """
 
+    def validate_self(self, cursor: Cursor):
+        if not cursor.is_scoped_to(Class):
+            raise SemanticError("uso inválido de 'super'", token="super")
+
+        cls = cursor.class_scope().node
+        if cls.base is None:
+            raise SemanticError("classe sem superclasse", token="super")
 
 @dataclass
 class Assign(Expr):
@@ -243,6 +257,10 @@ class Return(Stmt):
     def eval(self, ctx: Ctx):
         result = None if self.value is None else self.value.eval(ctx)
         raise LoxReturn(result)
+
+    def validate_self(self, cursor: Cursor):
+        if not cursor.is_scoped_to(Function):
+            raise SemanticError("return fora de função", token="return")
 
 @dataclass
 class VarDef(Stmt):
@@ -351,13 +369,18 @@ class Class(Stmt):
                 raise LoxError("Superclasse inválida")
             superclass = value
 
+        if superclass is None:
+            method_ctx = ctx
+        else:
+            method_ctx = ctx.push({"super": superclass})
+
         methods: dict[str, LoxFunction] = {}
         for method in self.methods:
             method_impl = LoxFunction(
                 name=method.name,
                 params=method.params,
                 body=method.body.stmts,
-                ctx=ctx,
+                ctx=method_ctx,
             )
             methods[method.name] = method_impl
 
