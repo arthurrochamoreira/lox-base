@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 from .ctx import Ctx
-from .runtime import LoxFunction, LoxReturn, LoxClass, LoxError, truthy, show
+from .runtime import LoxFunction, LoxReturn, LoxClass, LoxError, truthy, show, LoxInstance
 from .node import Node, Cursor
 from .errors import SemanticError
 
