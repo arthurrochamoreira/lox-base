@@ -250,12 +250,12 @@ def lt(a: "Value", b: "Value") -> bool:
 def le(a: "Value", b: "Value") -> bool:
     return _ensure_number(a) <= _ensure_number(b)
 
-
+"""
 def eq(a: "Value", b: "Value") -> bool:
     if type(a) is not type(b):
         return False
     return a == b
-
+"""
 
 def ne(a: "Value", b: "Value") -> bool:
     return not eq(a, b)
