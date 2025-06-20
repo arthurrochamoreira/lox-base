@@ -127,9 +127,7 @@ class LoxTransformer(Transformer):
         if isinstance(target, Getattr):
             return Setattr(obj=target.obj, attr=target.attr, value=value)
         raise TypeError("atribuição inválida")
-    
 
-    # Statements auxiliares
     def expr_stmt(self, expr: Expr):
         return expr
 
@@ -179,6 +177,9 @@ class LoxTransformer(Transformer):
 
         param_names = params or []
         return Function(name=name.name, params=param_names, body=body)
+
+    def super(self, _tok, name: Var):
+        return Super(name=name.name)
     
     def NIL(self, _):
         return Literal(None)

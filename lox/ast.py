@@ -187,6 +187,15 @@ class Super(Expr):
     Ex.: super.x
     """
 
+    name: str
+
+    def eval(self, ctx: Ctx):
+        method_name = self.name
+        superclass = ctx["super"]
+        this = ctx["this"]
+        method = superclass.get_method(method_name)
+        return method.bind(this)
+
     def validate_self(self, cursor: Cursor):
         if not cursor.is_scoped_to(Class):
             raise SemanticError("uso inválido de 'super'", token="super")
@@ -194,7 +203,7 @@ class Super(Expr):
         cls = cursor.class_scope().node
         if cls.base is None:
             raise SemanticError("classe sem superclasse", token="super")
-
+        
 @dataclass
 class Assign(Expr):
     """
