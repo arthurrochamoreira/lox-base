@@ -112,6 +112,10 @@ class LoxTransformer(Transformer):
     def BOOL(self, token):
         return Literal(token == "true")
     
+    def grouping(self, expr: Expr):
+        setattr(expr, "_grouping", True)
+        return expr
+
     def getattr(self, obj, name):
         return Getattr(obj=obj, name=name.name)
     
@@ -122,11 +126,11 @@ class LoxTransformer(Transformer):
         return UnaryOp(op=lambda x: -x, operand=value)
     
     def assign_expr(self, target: Expr, value: Expr):
-        if isinstance(target, Var):
+        if isinstance(target, Var) and not getattr(target, "_grouping", False):
             return Assign(name=target.name, value=value)
-        if isinstance(target, Getattr):
+        if isinstance(target, Getattr) and not getattr(target, "_grouping", False):
             return Setattr(obj=target.obj, attr=target.attr, value=value)
-        raise TypeError("atribuição inválida")
+        raise SemanticError("atribuição inválida", token="=")
 
     def expr_stmt(self, expr: Expr):
         return expr

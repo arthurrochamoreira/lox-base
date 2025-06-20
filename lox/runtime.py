@@ -227,8 +227,13 @@ def eq(a: "Value", b: "Value") -> bool:
     return a == b
 
 def truediv(a: "Value", b: "Value") -> float:
-    return _ensure_number(a) / _ensure_number(b)
-
+    a = _ensure_number(a)
+    b = _ensure_number(b)
+    if b == 0:
+        if a == 0:
+            return nan
+        return inf if a > 0 else -inf
+    return a / b
 
 def gt(a: "Value", b: "Value") -> bool:
     return _ensure_number(a) > _ensure_number(b)

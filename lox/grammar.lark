@@ -92,7 +92,9 @@ call_suffix: "(" params ")"   -> args
            | VAR
            | STRING
            | NIL
-           | "(" expr ")"
+           | grouping
+
+grouping  : "(" expr ")"
 
 params     : [ expr ("," expr )* ]
 
