@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 from .ctx import Ctx
-from .runtime import LoxFunction, LoxReturn, LoxClass, LoxError, LoxInstance, truthy, show
+from .runtime import LoxFunction, LoxReturn, LoxClass, LoxError, truthy, show
 from .node import Node, Cursor
 from .errors import SemanticError
 
@@ -286,6 +286,16 @@ class Return(Stmt):
     def validate_self(self, cursor: Cursor):
         if not cursor.is_scoped_to(Function):
             raise SemanticError("return fora de função", token="return")
+        func_cursor = cursor.function_scope()
+        if (
+            self.value is not None
+            and func_cursor.node.name == "init"
+            and isinstance(func_cursor.parent().node, Class)
+        ):
+            raise SemanticError(
+                "não pode retornar valor de inicializador",
+                token="return",
+            )
 
 @dataclass
 class VarDef(Stmt):
@@ -298,6 +308,15 @@ class VarDef(Stmt):
     def validate_self(self, cursor: Cursor):
         if self.name in KEYWORDS:
             raise SemanticError("nome inválido", token=self.name)
+        if isinstance(cursor.parent().node, Program):
+            return
+        for desc in self.value.cursor().descendants():
+            node = desc.node
+            if isinstance(node, Var) and node.name == self.name:
+                raise SemanticError(
+                    "variável usada em seu próprio inicializador",
+                    token=self.name,
+                )
 
 @dataclass
 class If(Stmt):
@@ -382,6 +401,13 @@ class Class(Stmt):
     name: str
     methods: list["Function"]
     base: str | None = None
+
+    def validate_self(self, cursor: Cursor):
+        if self.base == self.name:
+            raise SemanticError(
+                "classe nao pode herdar de si mesma",
+                token=self.name,
+            )
 
     def eval(self, ctx: Ctx):
         superclass = None

@@ -181,8 +181,6 @@ class LoxTransformer(Transformer):
     def super(self, _tok, name: Var):
         return Super(name=name.name)
     
-    def NIL(self, _):
-        return Literal(None)
 
     def this(self, _):
         return This()

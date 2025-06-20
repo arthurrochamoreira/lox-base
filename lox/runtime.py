@@ -218,6 +218,13 @@ def sub(a: "Value", b: "Value") -> float:
 def mul(a: "Value", b: "Value") -> float:
     return _ensure_number(a) * _ensure_number(b)
 
+def eq(a: "Value", b: "Value") -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, LoxFunction):
+        # Bound methods and functions compare by identity.
+        return a is b
+    return a == b
 
 def truediv(a: "Value", b: "Value") -> float:
     return _ensure_number(a) / _ensure_number(b)
