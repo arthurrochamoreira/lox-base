@@ -3,23 +3,30 @@ from dataclasses import dataclass
 from typing import Callable
 from .ctx import Ctx
 from .runtime import LoxFunction, LoxReturn, LoxClass, LoxError, LoxInstance, truthy, show
+from .node import Node, Cursor
+from .errors import SemanticError
 
-# Declaramos nossa classe base num módulo separado para esconder um pouco de
-# Python relativamente avançado de quem não se interessar pelo assunto.
-#
-# A classe Node implementa um método `pretty` que imprime as árvores de forma
-# legível. Também possui funcionalidades para navegar na árvore usando cursores
-# e métodos de visitação.
-from .node import Node
+KEYWORDS = {
+    "and",
+    "class",
+    "else",
+    "false",
+    "for",
+    "fun",
+    "if",
+    "nil",
+    "or",
+    "print",
+    "return",
+    "super",
+    "this",
+    "true",
+    "var",
+    "while",
+}
 
-
-#
-# TIPOS BÁSICOS
-#
-
-# Tipos de valores que podem aparecer durante a execução do programa
+""" Tipos de valores que podem aparecer durante a execução do programa"""
 Value = bool | str | float | None
-
 
 class Expr(Node, ABC):
     """
@@ -92,6 +99,9 @@ class Var(Expr):
         except KeyError:
             raise NameError(f"variável {self.name} não existe!")
 
+    def validate_self(self, cursor: Cursor):
+        if self.name in KEYWORDS:
+            raise SemanticError("nome inválido", token=self.name)
 
 @dataclass
 class Literal(Expr):
@@ -247,6 +257,10 @@ class VarDef(Stmt):
     def eval(self, ctx: Ctx):
         ctx.var_def(self.name, self.value.eval(ctx))
 
+    def validate_self(self, cursor: Cursor):
+        if self.name in KEYWORDS:
+            raise SemanticError("nome inválido", token=self.name)
+
 @dataclass
 class If(Stmt):
     cond: Expr
@@ -280,6 +294,13 @@ class Block(Node):
         finally:
             ctx.pop()
 
+    def validate_self(self, cursor: Cursor):
+        names: list[str] = [s.name for s in self.stmts if isinstance(s, VarDef)]
+        seen: set[str] = set()
+        for name in names:
+            if name in seen:
+                raise SemanticError("variável duplicada", token=name)
+            seen.add(name)
 
 @dataclass
 class Function(Stmt):
@@ -296,6 +317,24 @@ class Function(Stmt):
         )
         ctx.var_def(self.name, func)
         return func
+
+    def validate_self(self, cursor: Cursor):
+        for p in self.params:
+            if p in KEYWORDS:
+                raise SemanticError("nome inválido", token=p)
+
+        if len(set(self.params)) != len(self.params):
+            seen: set[str] = set()
+            for p in self.params:
+                if p in seen:
+                    raise SemanticError("parâmetro duplicado", token=p)
+                seen.add(p)
+
+        body_vars = [s.name for s in self.body.stmts if isinstance(s, VarDef)]
+        for name in body_vars:
+            if name in self.params:
+                raise SemanticError("nome inválido", token=name)
+            
 @dataclass
 class Class(Stmt):
     """
