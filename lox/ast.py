@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 from .ctx import Ctx
-from .runtime import LoxFunction, LoxReturn, LoxClass, truthy, show
+from .runtime import LoxFunction, LoxReturn, LoxClass, LoxError, LoxInstance, truthy, show
 
 # Declaramos nossa classe base num módulo separado para esconder um pouco de
 # Python relativamente avançado de quem não se interessar pelo assunto.
@@ -10,27 +10,8 @@ from .runtime import LoxFunction, LoxReturn, LoxClass, truthy, show
 # A classe Node implementa um método `pretty` que imprime as árvores de forma
 # legível. Também possui funcionalidades para navegar na árvore usando cursores
 # e métodos de visitação.
-from .node import Node, Cursor
-from .errors import SemanticError
+from .node import Node
 
-RESERVED_WORDS: set[str] = {
-    "and",
-    "class",
-    "else",
-    "false",
-    "for",
-    "fun",
-    "if",
-    "nil",
-    "or",
-    "print",
-    "return",
-    "super",
-    "this",
-    "true",
-    "var",
-    "while",
-}
 
 #
 # TIPOS BÁSICOS
@@ -110,11 +91,6 @@ class Var(Expr):
             return ctx[self.name]
         except KeyError:
             raise NameError(f"variável {self.name} não existe!")
-        
-    def validate_self(self, cursor: Cursor):
-        if self.name in RESERVED_WORDS:
-            raise SemanticError("nome inválido", token=self.name)
-
 
 
 @dataclass
@@ -209,11 +185,6 @@ class Assign(Expr):
         result = self.value.eval(ctx)
         ctx.assign(self.name, result)
         return result
-    
-    def validate_self(self, cursor: Cursor):
-        if self.name in RESERVED_WORDS:
-            raise SemanticError("nome inválido", token=self.name)
-
 
 @dataclass
 class Getattr(Expr):
@@ -276,25 +247,6 @@ class VarDef(Stmt):
     def eval(self, ctx: Ctx):
         ctx.var_def(self.name, self.value.eval(ctx))
 
-    def validate_self(self, cursor: Cursor):
-        if self.name in RESERVED_WORDS:
-            raise SemanticError("nome inválido", token=self.name)
-
-        try:
-            func_cursor = cursor.function_scope()
-        except ValueError:
-            return
-
-        first_block = None
-        for parent in cursor.parents():
-            if isinstance(parent.node, Block):
-                first_block = parent.node
-                break
-
-        if first_block is func_cursor.node.body and self.name in func_cursor.node.params:
-            raise SemanticError("nome inválido", token=self.name)
-
-
 @dataclass
 class If(Stmt):
     cond: Expr
@@ -328,14 +280,6 @@ class Block(Node):
         finally:
             ctx.pop()
 
-    def validate_self(self, cursor: Cursor):
-        names = [s.name for s in self.stmts if isinstance(s, VarDef)]
-        seen = set()
-        for name in names:
-            if name in seen:
-                raise SemanticError("nome inválido", token=name)
-            seen.add(name)
-
 
 @dataclass
 class Function(Stmt):
@@ -352,13 +296,6 @@ class Function(Stmt):
         )
         ctx.var_def(self.name, func)
         return func
-    
-    def validate_self(self, cursor: Cursor):
-        seen = set()
-        for name in self.params:
-            if name in RESERVED_WORDS or name in seen:
-                raise SemanticError("nome inválido", token=name)
-            seen.add(name)
 @dataclass
 class Class(Stmt):
     """
@@ -371,7 +308,27 @@ class Class(Stmt):
     base: str | None = None
 
     def eval(self, ctx: Ctx):
-        lox_class = LoxClass(self.name)
+        superclass = None
+        if self.base is not None:
+            try:
+                value = ctx[self.base]
+            except KeyError as e:
+                raise NameError(f"classe {self.base} não existe") from e
+            if not isinstance(value, LoxClass):
+                raise LoxError("Superclasse inválida")
+            superclass = value
+
+        methods: dict[str, LoxFunction] = {}
+        for method in self.methods:
+            method_impl = LoxFunction(
+                name=method.name,
+                params=method.params,
+                body=method.body.stmts,
+                ctx=ctx,
+            )
+            methods[method.name] = method_impl
+
+        lox_class = LoxClass(self.name, methods, superclass)
         ctx.var_def(self.name, lox_class)
         return lox_class
 

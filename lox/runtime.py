@@ -30,16 +30,24 @@ __all__ = [
 ]
 
 
+@dataclass
 class LoxClass:
     """Representa uma classe Lox."""
 
     name: str
-
-    def __init__(self, name: str):
-        self.name = name
+    methods: dict[str, "LoxFunction"]
+    base: "LoxClass | None" = None
 
     def __call__(self, *args):
+        """Permite instanciar objetos Lox chamando a classe."""
         return LoxInstance(self)
+
+    def get_method(self, name: str) -> "LoxFunction":
+        if name in self.methods:
+            return self.methods[name]
+        if self.base is not None:
+            return self.base.get_method(name)
+        raise LoxError(f"Método '{name}' não encontrado")
 
     def __str__(self) -> str:
         return self.name
@@ -53,6 +61,14 @@ class LoxInstance:
 
     def __str__(self) -> str:
         return f"{self.cls.name} instance"
+
+    def __getattr__(self, attr: str):
+        """Procura por métodos definidos na classe."""
+        try:
+            return self.cls.get_method(attr)
+        except LoxError:
+            raise AttributeError(attr)
+
 
 
 @dataclass
