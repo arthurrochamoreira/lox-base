@@ -44,14 +44,14 @@ class LoxFunction:
 
     def call(self, args: list["Value"]):
         env = dict(zip(self.params, args, strict=True))
-        self.ctx.push(env)
+        ctx = self.ctx.push(env)
         try:
             for stmt in self.body:
-                stmt.eval(self.ctx)
+                stmt.eval(ctx)
         except LoxReturn as e:
             return e.value
         finally:
-            self.ctx.pop()
+            ctx.pop()
 
     def __call__(self, *args):
         return self.call(list(args))

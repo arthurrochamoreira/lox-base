@@ -125,22 +125,20 @@ class Ctx:
             lines.append(pretty_scope(scope, i))
         return "\n".join(reversed(lines))
 
-    def pop(self) -> ScopeDict:
-        """
-        Remove o escopo mais interno e retorna o contexto atualizado.
-        """
+    def pop(self) -> tuple[ScopeDict, "Ctx"]:
+        """Remove o escopo mais interno e retorna uma dupla com o escopo
+        descartado e o contexto resultante."""
+
         if self.parent is None:
             raise RuntimeError("Cannot pop the global scope.")
 
-        scope = self.scope
-        self.scope = self.parent.scope
-        self.parent = self.parent.parent
-        return scope
+        return self.scope, self.parent
 
-    def push(self, tos: ScopeDict):
-        """Adiciona um dicionário ao topo da pilha."""
-        self.parent = Ctx(self.scope, self.parent)
-        self.scope = tos
+    def push(self, tos: ScopeDict) -> "Ctx":
+        """Adiciona ``tos`` como novo escopo mais interno e retorna o novo
+        contexto."""
+
+        return Ctx(tos, self)
 
     def is_global(self) -> bool:
         """

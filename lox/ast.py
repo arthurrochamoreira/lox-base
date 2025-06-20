@@ -273,7 +273,7 @@ class Block(Node):
     stmts: list[Stmt]
 
     def eval(self, ctx: Ctx):
-        ctx.push({})
+        ctx = ctx.push({})
         try:
             for stmt in self.stmts:
                 stmt.eval(ctx)
