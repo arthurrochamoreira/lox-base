@@ -10,8 +10,27 @@ from .runtime import LoxFunction, LoxReturn, LoxClass, truthy, show
 # A classe Node implementa um método `pretty` que imprime as árvores de forma
 # legível. Também possui funcionalidades para navegar na árvore usando cursores
 # e métodos de visitação.
-from .node import Node
+from .node import Node, Cursor
+from .errors import SemanticError
 
+RESERVED_WORDS: set[str] = {
+    "and",
+    "class",
+    "else",
+    "false",
+    "for",
+    "fun",
+    "if",
+    "nil",
+    "or",
+    "print",
+    "return",
+    "super",
+    "this",
+    "true",
+    "var",
+    "while",
+}
 
 #
 # TIPOS BÁSICOS
@@ -91,6 +110,11 @@ class Var(Expr):
             return ctx[self.name]
         except KeyError:
             raise NameError(f"variável {self.name} não existe!")
+        
+    def validate_self(self, cursor: Cursor):
+        if self.name in RESERVED_WORDS:
+            raise SemanticError("nome inválido", token=self.name)
+
 
 
 @dataclass
@@ -185,6 +209,11 @@ class Assign(Expr):
         result = self.value.eval(ctx)
         ctx.assign(self.name, result)
         return result
+    
+    def validate_self(self, cursor: Cursor):
+        if self.name in RESERVED_WORDS:
+            raise SemanticError("nome inválido", token=self.name)
+
 
 @dataclass
 class Getattr(Expr):
@@ -247,6 +276,25 @@ class VarDef(Stmt):
     def eval(self, ctx: Ctx):
         ctx.var_def(self.name, self.value.eval(ctx))
 
+    def validate_self(self, cursor: Cursor):
+        if self.name in RESERVED_WORDS:
+            raise SemanticError("nome inválido", token=self.name)
+
+        try:
+            func_cursor = cursor.function_scope()
+        except ValueError:
+            return
+
+        first_block = None
+        for parent in cursor.parents():
+            if isinstance(parent.node, Block):
+                first_block = parent.node
+                break
+
+        if first_block is func_cursor.node.body and self.name in func_cursor.node.params:
+            raise SemanticError("nome inválido", token=self.name)
+
+
 @dataclass
 class If(Stmt):
     cond: Expr
@@ -280,6 +328,14 @@ class Block(Node):
         finally:
             ctx.pop()
 
+    def validate_self(self, cursor: Cursor):
+        names = [s.name for s in self.stmts if isinstance(s, VarDef)]
+        seen = set()
+        for name in names:
+            if name in seen:
+                raise SemanticError("nome inválido", token=name)
+            seen.add(name)
+
 
 @dataclass
 class Function(Stmt):
@@ -296,6 +352,13 @@ class Function(Stmt):
         )
         ctx.var_def(self.name, func)
         return func
+    
+    def validate_self(self, cursor: Cursor):
+        seen = set()
+        for name in self.params:
+            if name in RESERVED_WORDS or name in seen:
+                raise SemanticError("nome inválido", token=name)
+            seen.add(name)
 @dataclass
 class Class(Stmt):
     """
