@@ -29,7 +29,6 @@ __all__ = [
     "LoxInstance",
 ]
 
-
 @dataclass
 class LoxClass:
     """Representa uma classe Lox."""
@@ -40,7 +39,18 @@ class LoxClass:
 
     def __call__(self, *args):
         """Permite instanciar objetos Lox chamando a classe."""
-        return LoxInstance(self)
+        instance = LoxInstance(self)
+        try:
+            initializer = self.get_method("init")
+        except LoxError:
+            if args:
+                raise LoxError(
+                    f"Expected 0 arguments but got {len(args)}."
+                )
+            return instance
+        bound_init = initializer.bind(instance)
+        bound_init(*args)
+        return instance
 
     def get_method(self, name: str) -> "LoxFunction":
         if name in self.methods:
@@ -51,7 +61,6 @@ class LoxClass:
 
     def __str__(self) -> str:
         return self.name
-
 
 class LoxInstance:
     """Instância de uma :class:`LoxClass`."""
@@ -70,6 +79,15 @@ class LoxInstance:
             return method.bind(self)
         except LoxError:
             raise AttributeError(attr)
+
+    def init(self, *args):
+        try:
+            initializer = self.__cls.get_method("init")
+        except LoxError:
+            raise AttributeError("init")
+        bound_init = initializer.bind(self)
+        bound_init(*args)
+        return self
 
 @dataclass
 class LoxFunction:

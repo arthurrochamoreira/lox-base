@@ -179,6 +179,10 @@ class This(Expr):
         except KeyError:
             raise NameError("variável this não existe!")
 
+    def validate_self(self, cursor: Cursor):
+        if not cursor.is_scoped_to(Class):
+            raise SemanticError("uso inválido de 'this'", token="this")
+
 @dataclass
 class Super(Expr):
     """
