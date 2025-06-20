@@ -116,7 +116,7 @@ class LoxTransformer(Transformer):
         return Getattr(obj=obj, name=name.name)
     
     def not_(self, value):
-        return UnaryOp(op=lambda x: not x, operand=value)
+        return UnaryOp(op=op.not_, operand=value)
 
     def neg(self, value):
         return UnaryOp(op=lambda x: -x, operand=value)

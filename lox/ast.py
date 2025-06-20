@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 from .ctx import Ctx
-from .runtime import LoxFunction, LoxReturn, truthy
+from .runtime import LoxFunction, LoxReturn, truthy, show
 
 # Declaramos nossa classe base num módulo separado para esconder um pouco de
 # Python relativamente avançado de quem não se interessar pelo assunto.
@@ -228,7 +228,7 @@ class Print(Stmt):
     
     def eval(self, ctx: Ctx):
         value = self.expr.eval(ctx)
-        print(value)
+        print(show(value))
 
 
 @dataclass

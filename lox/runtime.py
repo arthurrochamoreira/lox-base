@@ -1,7 +1,8 @@
 import builtins
 from dataclasses import dataclass
-from operator import add, eq, ge, gt, le, lt, mul, ne, neg, not_, sub, truediv
+from operator import neg
 from typing import TYPE_CHECKING
+from types import BuiltinFunctionType, FunctionType
 
 from .ctx import Ctx
 
@@ -31,6 +32,8 @@ class LoxInstance:
     """
     Classe base para todos os objetos Lox.
     """
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__} instance"
 
 
 @dataclass
@@ -55,6 +58,9 @@ class LoxFunction:
 
     def __call__(self, *args):
         return self.call(list(args))
+    
+    def __str__(self) -> str:
+        return f"<fn {self.name}>"
 class LoxReturn(Exception):
     """
     Exceção para retornar de uma função Lox.
@@ -86,6 +92,23 @@ def show(value: "Value") -> str:
     """
     Converte valor lox para string.
     """
+    if value is None:
+        return "nil"
+    if value is True:
+        return "true"
+    if value is False:
+        return "false"
+    if isinstance(value, float):
+        text = str(value)
+        return text.removesuffix(".0")
+    if isinstance(value, LoxFunction):
+        return str(value)
+    if isinstance(value, type):
+        return value.__name__
+    if isinstance(value, LoxInstance):
+        return f"{type(value).__name__} instance"
+    if isinstance(value, (FunctionType, BuiltinFunctionType)):
+        return "<native fn>"
     return str(value)
 
 
@@ -102,6 +125,60 @@ def truthy(value: "Value") -> bool:
     """
     Converte valor lox para booleano segundo a semântica do lox.
     """
-    if value is None or value is False:
+    return not (value is False or value is None)
+
+
+def not_(value: "Value") -> bool:
+    return not truthy(value)
+
+
+def _ensure_number(x: "Value") -> float:
+    if not isinstance(x, float):
+        raise LoxError("Operação requer números")
+    return x
+
+
+def add(a: "Value", b: "Value") -> "Value":
+    if isinstance(a, float) and isinstance(b, float):
+        return a + b
+    if isinstance(a, str) and isinstance(b, str):
+        return a + b
+    raise LoxError("Operands must be two numbers or two strings")
+
+
+def sub(a: "Value", b: "Value") -> float:
+    return _ensure_number(a) - _ensure_number(b)
+
+
+def mul(a: "Value", b: "Value") -> float:
+    return _ensure_number(a) * _ensure_number(b)
+
+
+def truediv(a: "Value", b: "Value") -> float:
+    return _ensure_number(a) / _ensure_number(b)
+
+
+def gt(a: "Value", b: "Value") -> bool:
+    return _ensure_number(a) > _ensure_number(b)
+
+
+def ge(a: "Value", b: "Value") -> bool:
+    return _ensure_number(a) >= _ensure_number(b)
+
+
+def lt(a: "Value", b: "Value") -> bool:
+    return _ensure_number(a) < _ensure_number(b)
+
+
+def le(a: "Value", b: "Value") -> bool:
+    return _ensure_number(a) <= _ensure_number(b)
+
+
+def eq(a: "Value", b: "Value") -> bool:
+    if type(a) is not type(b):
         return False
-    return True
+    return a == b
+
+
+def ne(a: "Value", b: "Value") -> bool:
+    return not eq(a, b)
