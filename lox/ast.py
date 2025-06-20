@@ -223,10 +223,6 @@ class Setattr(Expr):
         setattr(obj_value, self.attr, result)
         return result
 
-
-#
-# COMANDOS
-#
 @dataclass
 class Print(Stmt):
     """
@@ -239,7 +235,6 @@ class Print(Stmt):
     def eval(self, ctx: Ctx):
         value = self.expr.eval(ctx)
         print(show(value))
-
 
 @dataclass
 class Return(Stmt):
@@ -280,7 +275,6 @@ class While(Stmt):
     def eval(self, ctx: Ctx):
         while truthy(self.cond.eval(ctx)):
             self.body.eval(ctx)
-
 
 @dataclass
 class Block(Node):

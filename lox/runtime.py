@@ -57,19 +57,18 @@ class LoxInstance:
     """Instância de uma :class:`LoxClass`."""
 
     def __init__(self, cls: LoxClass):
-        self.cls = cls
+
+        self.__cls = cls
 
     def __str__(self) -> str:
-        return f"{self.cls.name} instance"
+        return f"{self.__cls.name} instance"
 
     def __getattr__(self, attr: str):
         """Procura por métodos definidos na classe."""
         try:
-            return self.cls.get_method(attr)
+            return self.__cls.get_method(attr)
         except LoxError:
             raise AttributeError(attr)
-
-
 
 @dataclass
 class LoxFunction:
