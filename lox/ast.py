@@ -232,6 +232,12 @@ class Getattr(Expr):
 
     def eval(self, ctx: Ctx):
         value = self.obj.eval(ctx)
+        if (
+            value is None
+            or type(value) in (bool, float, str)
+            or isinstance(value, (LoxClass, LoxFunction))
+        ):
+            raise LoxError("Somente instâncias têm propriedades.")
         return getattr(value, self.attr)
 
 @dataclass
@@ -242,6 +248,12 @@ class Setattr(Expr):
 
     def eval(self, ctx: Ctx):
         obj_value = self.obj.eval(ctx)
+        if (
+            obj_value is None
+            or type(obj_value) in (bool, float, str)
+            or isinstance(obj_value, (LoxClass, LoxFunction))
+        ):
+            raise LoxError("Somente instâncias tem campos")
         result = self.value.eval(ctx)
         setattr(obj_value, self.attr, result)
         return result
