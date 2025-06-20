@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Callable
 from .ctx import Ctx
-from .runtime import LoxFunction, LoxReturn, truthy, show
+from .runtime import LoxFunction, LoxReturn, LoxClass, truthy, show
 
 # Declaramos nossa classe base num módulo separado para esconder um pouco de
 # Python relativamente avançado de quem não se interessar pelo assunto.
@@ -303,6 +303,14 @@ class Class(Stmt):
 
     Ex.: class B < A { ... }
     """
+    name: str
+    methods: list["Function"]
+    base: str | None = None
+
+    def eval(self, ctx: Ctx):
+        lox_class = LoxClass(self.name)
+        ctx.var_def(self.name, lox_class)
+        return lox_class
 
 @dataclass
 class UnaryOp(Expr):

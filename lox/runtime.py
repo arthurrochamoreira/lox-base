@@ -25,15 +25,34 @@ __all__ = [
     "sub",
     "truthy",
     "truediv",
+    "LoxClass",
+    "LoxInstance",
 ]
 
 
-class LoxInstance:
-    """
-    Classe base para todos os objetos Lox.
-    """
+class LoxClass:
+    """Representa uma classe Lox."""
+
+    name: str
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __call__(self, *args):
+        return LoxInstance(self)
+
     def __str__(self) -> str:
-        return f"{self.__class__.__name__} instance"
+        return self.name
+
+
+class LoxInstance:
+    """Instância de uma :class:`LoxClass`."""
+
+    def __init__(self, cls: LoxClass):
+        self.cls = cls
+
+    def __str__(self) -> str:
+        return f"{self.cls.name} instance"
 
 
 @dataclass
@@ -92,6 +111,10 @@ def show(value: "Value") -> str:
     """
     Converte valor lox para string.
     """
+    if isinstance(value, LoxClass):
+        return str(value)
+    if isinstance(value, LoxInstance):
+        return str(value)
     if value is None:
         return "nil"
     if value is True:

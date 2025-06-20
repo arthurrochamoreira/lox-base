@@ -169,3 +169,23 @@ class LoxTransformer(Transformer):
 
     def return_cmd(self, value: Expr | None = None):
         return Return(value)
+    
+    def method(self, name: Var, *rest):
+        if len(rest) == 1:
+            params: list[str] | None = None
+            body = rest[0]
+        else:
+            params, body = rest  # type: ignore[misc]
+
+        param_names = params or []
+        return Function(name=name.name, params=param_names, body=body)
+
+    def class_decl(self, name: Var, *rest):
+        base: str | None = None
+        methods: list[Function] = []
+        if rest and isinstance(rest[0], Var):
+            base = rest[0].name
+            methods = list(rest[1:])  # type: ignore[misc]
+        else:
+            methods = list(rest)
+        return Class(name=name.name, methods=methods, base=base)
